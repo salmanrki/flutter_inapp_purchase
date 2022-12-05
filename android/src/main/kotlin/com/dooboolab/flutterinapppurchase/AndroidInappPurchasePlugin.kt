@@ -488,6 +488,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         val sku = call.argument<String>("sku")
         val prorationMode = call.argument<Int>("prorationMode")!!
         val purchaseToken = call.argument<String>("purchaseToken")
+        val offerToken = call.argument<String>("offerToken")
         val builder = newBuilder()
         var selectedSku: ProductDetails? = null
         for (skuDetail in skus) {
@@ -498,13 +499,22 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         }
         if (selectedSku == null) {
             val debugMessage =
-                "The sku was not found. Please fetch setObfuscatedAccountIdproducts first by calling getItems"
+                "The sku was not found."
+            safeChannel.error(TAG, "buyItemByType", debugMessage)
+            return
+        }
+        if (offerToken == null) {
+            val debugMessage =
+                "The offerToken was not found."
             safeChannel.error(TAG, "buyItemByType", debugMessage)
             return
         }
 
         val arr = ArrayList<ProductDetailsParams>()
-        arr.add(ProductDetailsParams.newBuilder().apply { setProductDetails(selectedSku) }.build())
+        arr.add(ProductDetailsParams.newBuilder().apply {
+            setProductDetails(selectedSku)
+            setOfferToken(offerToken)
+        }.build())
         builder.setProductDetailsParamsList(arr)
 
         val params = SubscriptionUpdateParams.newBuilder()

@@ -269,6 +269,7 @@ class FlutterInappPurchase {
   /// Identical to [requestSubscription] on `iOS`.
   Future requestPurchase(
     String sku, {
+    String? offerTokenAndroid,
     String? obfuscatedAccountId,
     String? purchaseTokenAndroid,
     String? obfuscatedProfileIdAndroid,
@@ -281,6 +282,7 @@ class FlutterInappPurchase {
         'obfuscatedAccountId': obfuscatedAccountId,
         'obfuscatedProfileId': obfuscatedProfileIdAndroid,
         'purchaseToken': purchaseTokenAndroid,
+        'offerToken': offerTokenAndroid,
       });
     } else if (_platform.isIOS) {
       return await _channel.invokeMethod('buyProduct', <String, dynamic>{
@@ -301,6 +303,7 @@ class FlutterInappPurchase {
   /// Identical to [requestPurchase] on `iOS`.
   Future requestSubscription(
     String sku, {
+    String? offerTokenAndroid,
     int? prorationModeAndroid,
     String? obfuscatedAccountIdAndroid,
     String? obfuscatedProfileIdAndroid,
@@ -314,6 +317,7 @@ class FlutterInappPurchase {
         'obfuscatedAccountId': obfuscatedAccountIdAndroid,
         'obfuscatedProfileId': obfuscatedProfileIdAndroid,
         'purchaseToken': purchaseTokenAndroid,
+        'offerToken': offerTokenAndroid,
       });
     } else if (_platform.isIOS) {
       return await _channel.invokeMethod('buyProduct', <String, dynamic>{
@@ -556,10 +560,9 @@ class FlutterInappPurchase {
 
       return false;
     } else if (_platform.isAndroid) {
-      var purchases =
-          await (getAvailablePurchases() as FutureOr<List<PurchasedItem>>);
+      var purchases = await getAvailablePurchases();
 
-      for (var purchase in purchases) {
+      for (var purchase in purchases ?? []) {
         if (purchase.productId == sku) return true;
       }
 
