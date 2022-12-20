@@ -1,7 +1,7 @@
 package com.dooboolab.flutterinapppurchase
 
-import com.android.billingclient.api.BillingClient.BillingResponseCode
 import android.util.Log
+import com.android.billingclient.api.BillingClient.BillingResponseCode
 
 class BillingError {
     companion object {
