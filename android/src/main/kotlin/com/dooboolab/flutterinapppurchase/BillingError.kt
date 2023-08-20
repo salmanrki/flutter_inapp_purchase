@@ -1,7 +1,7 @@
 package com.dooboolab.flutterinapppurchase
 
-import com.android.billingclient.api.BillingClient.BillingResponseCode
 import android.util.Log
+import com.android.billingclient.api.BillingClient.BillingResponseCode
 
 class BillingError {
     companion object {
@@ -36,11 +36,11 @@ class BillingError {
                 BillingResponseCode.ITEM_UNAVAILABLE ->
                     ErrorData( E_ITEM_UNAVAILABLE, "That item is unavailable.")
                 BillingResponseCode.DEVELOPER_ERROR ->
-                    ErrorData(E_DEVELOPER_ERROR, "Google is indicating that we have some issue connecting to payment.")
+                    ErrorData(E_DEVELOPER_ERROR, "Google is indicating that we have some issue connecting to payment. Please check payment methods on your account")
                 BillingResponseCode.ERROR ->
-                    ErrorData(E_UNKNOWN,"An unknown or unexpected error has occured. Please try again later.")
+                    ErrorData(E_UNKNOWN,"An unknown or unexpected error has occured. Please try again minutes from now.")
                 BillingResponseCode.ITEM_ALREADY_OWNED ->
-                    ErrorData(E_ALREADY_OWNED, "You already own this item.")
+                    ErrorData(E_ALREADY_OWNED, "You already own this item, please purchase another item.")
                 else -> ErrorData(E_UNKNOWN,"Purchase failed with code: $responseCode")
             }
         }
