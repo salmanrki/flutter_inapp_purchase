@@ -32,15 +32,19 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
     fun setContext(context: Context?) {
         this.context = context
     }
+
     fun setActivity(activity: Activity?) {
         this.activity = activity
     }
+
     fun setChannel(channel: MethodChannel?) {
         this.channel = channel
     }
+
     fun onDetachedFromActivity() {
         endBillingClientConnection()
     }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
     override fun onActivityStarted(activity: Activity) {}
     override fun onActivityResumed(activity: Activity) {}
@@ -51,21 +55,27 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             endBillingClientConnection()
         }
     }
+
     override fun onActivityStopped(activity: Activity) {}
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
 
-        if(call.method == "getStore"){
+        if (call.method == "getStore") {
             result.success(FlutterInappPurchasePlugin.getStore())
             return
         }
 
-        if(call.method == "manageSubscription"){
-            result.success(manageSubscription(call.argument<String>("sku")!!,call.argument<String>("packageName")!!))
+        if (call.method == "manageSubscription") {
+            result.success(
+                manageSubscription(
+                    call.argument<String>("sku")!!,
+                    call.argument<String>("packageName")!!
+                )
+            )
             return
         }
 
-        if(call.method == "openPlayStoreSubscriptions"){
+        if (call.method == "openPlayStoreSubscriptions") {
             result.success(openPlayStoreSubscriptions())
             return
         }
@@ -78,7 +88,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 safeChannel.success("Already started. Call endConnection method if you want to start over.")
                 return
             }
-            billingClient = BillingClient.newBuilder(context!!).setListener(purchasesUpdatedListener)
+            billingClient =
+                BillingClient.newBuilder(context!!).setListener(purchasesUpdatedListener)
                     .enablePendingPurchases()
                     .build()
             billingClient!!.startConnection(object : BillingClientStateListener {
@@ -125,7 +136,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         if (call.method == "endConnection") {
             if (billingClient == null) {
                 safeChannel.success("Already ended.")
-            }else{
+            } else {
                 endBillingClientConnection(safeChannel)
             }
             return
@@ -133,7 +144,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
 
         val isReady = billingClient?.isReady
 
-        if(call.method == "isReady"){
+        if (call.method == "isReady") {
             safeChannel.success(isReady)
             return
         }
@@ -147,11 +158,16 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             return
         }
 
-        when(call.method){
+        when (call.method) {
             "showInAppMessages" -> showInAppMessages(safeChannel)
             "consumeAllItems" -> consumeAllItems(safeChannel, call)
             "getProducts" -> getProductsByType(BillingClient.ProductType.INAPP, call, safeChannel)
-            "getSubscriptions" -> getProductsByType(BillingClient.ProductType.SUBS, call, safeChannel)
+            "getSubscriptions" -> getProductsByType(
+                BillingClient.ProductType.SUBS,
+                call,
+                safeChannel
+            )
+
             "getAvailableItemsByType" -> getAvailableItemsByType(call, safeChannel)
             "getPurchaseHistoryByType" -> getPurchaseHistoryByType(call, safeChannel)
             "buyItemByType" -> buyProduct(call, safeChannel)
@@ -161,26 +177,28 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         }
     }
 
-    private fun manageSubscription(sku: String, packageName: String): Boolean{
+    private fun manageSubscription(sku: String, packageName: String): Boolean {
         val url = "$PLAY_STORE_URL?sku=${sku}&package=${packageName}"
         return openWithFallback(Uri.parse(url))
     }
 
-    private fun openPlayStoreSubscriptions():Boolean{
+    private fun openPlayStoreSubscriptions(): Boolean {
         return openWithFallback(Uri.parse(PLAY_STORE_URL))
     }
 
-    private fun openWithFallback(uri: Uri):Boolean{
-        try{
+    private fun openWithFallback(uri: Uri): Boolean {
+        try {
             activity!!.startActivity(Intent(Intent.ACTION_VIEW).apply { data = uri })
             return true
-        }catch (e: ActivityNotFoundException){
-            try{
-                activity!!.startActivity( Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(uri, "text/html")
-                    .addCategory(Intent.CATEGORY_BROWSABLE))
+        } catch (e: ActivityNotFoundException) {
+            try {
+                activity!!.startActivity(
+                    Intent(Intent.ACTION_VIEW)
+                        .setDataAndType(uri, "text/html")
+                        .addCategory(Intent.CATEGORY_BROWSABLE)
+                )
                 return true
-            }catch (e: ActivityNotFoundException){
+            } catch (e: ActivityNotFoundException) {
                 // ignore
             }
         }
@@ -204,7 +222,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
     ) {
         try {
             val array = ArrayList<String>()
-            val params = QueryPurchasesParams.newBuilder().apply { setProductType(BillingClient.ProductType.INAPP) }.build()
+            val params = QueryPurchasesParams.newBuilder()
+                .apply { setProductType(BillingClient.ProductType.INAPP) }.build()
             billingClient!!.queryPurchasesAsync(params)
             { billingResult, skuDetailsList ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
@@ -251,7 +270,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         call: MethodCall,
         safeChannel: MethodResultWrapper
     ) {
-        val type = if(call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
+        val type =
+            if (call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
         val params = QueryPurchasesParams.newBuilder().apply { setProductType(type) }.build()
         val items = JSONArray()
         billingClient!!.queryPurchasesAsync(params) { billingResult, skuDetailsList ->
@@ -328,7 +348,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             acknowledgePurchaseParams,
             AcknowledgePurchaseResponseListener { billingResult ->
                 if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                    val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
+                    val errorData =
+                        BillingError.getErrorFromResponseData(billingResult.responseCode)
                     safeChannel.error(call.method, errorData.code, errorData.message)
                     return@AcknowledgePurchaseResponseListener
                 }
@@ -336,7 +357,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     val item = JSONObject()
                     item.put("responseCode", billingResult.responseCode)
                     item.put("debugMessage", billingResult.debugMessage)
-                    val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
+                    val errorData =
+                        BillingError.getErrorFromResponseData(billingResult.responseCode)
                     item.put("code", errorData.code)
                     item.put("message", errorData.message)
                     safeChannel.success(item.toString())
@@ -355,14 +377,16 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         call: MethodCall,
         safeChannel: MethodResultWrapper
     ) {
-        val type = if(call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
+        val type =
+            if (call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
         val params = QueryPurchaseHistoryParams.newBuilder().apply { setProductType(type) }.build()
 
         billingClient!!.queryPurchaseHistoryAsync(
             params,
             PurchaseHistoryResponseListener { billingResult, purchaseHistoryRecordList ->
                 if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                    val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
+                    val errorData =
+                        BillingError.getErrorFromResponseData(billingResult.responseCode)
                     safeChannel.error(call.method, errorData.code, errorData.message)
                     return@PurchaseHistoryResponseListener
                 }
@@ -382,7 +406,11 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     return@PurchaseHistoryResponseListener
                 } catch (je: JSONException) {
                     je.printStackTrace()
-                    safeChannel.error(TAG, BillingError.E_BILLING_RESPONSE_JSON_PARSE_ERROR, je.message)
+                    safeChannel.error(
+                        TAG,
+                        BillingError.E_BILLING_RESPONSE_JSON_PARSE_ERROR,
+                        je.message
+                    )
                 }
             })
     }
@@ -392,10 +420,13 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         call: MethodCall,
         safeChannel: MethodResultWrapper
     ) {
-        val skuArr : ArrayList<String> = call.argument<ArrayList<String>>("skus")!!
+        val skuArr: ArrayList<String> = call.argument<ArrayList<String>>("skus")!!
         val params = ArrayList<QueryProductDetailsParams.Product>()
         for (i in skuArr.indices) {
-            params.add(QueryProductDetailsParams.Product.newBuilder().setProductId(skuArr[i]).setProductType(productType).build())
+            params.add(
+                QueryProductDetailsParams.Product.newBuilder().setProductId(skuArr[i])
+                    .setProductType(productType).build()
+            )
         }
 
         billingClient!!.queryProductDetailsAsync(
@@ -425,24 +456,31 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
 
                     // One-time offer details have changed in 5.0
                     if (productDetails.oneTimePurchaseOfferDetails != null) {
-                        item.put("introductoryPrice", productDetails.oneTimePurchaseOfferDetails!!.formattedPrice)
+                        item.put(
+                            "introductoryPrice",
+                            productDetails.oneTimePurchaseOfferDetails!!.formattedPrice
+                        )
                     }
 
                     // These generalized values are derived from the first pricing object, mainly for backwards compatibility
                     // It would be better to use the actual objects in PricingPhases and SubscriptionOffers
 
                     // Get first subscription offer
-                    val firstProductInfo = productDetails.subscriptionOfferDetails?.find { offer -> offer.offerId == null }
+                    val firstProductInfo =
+                        productDetails.subscriptionOfferDetails?.find { offer -> offer.offerId == null }
                     if (firstProductInfo != null && firstProductInfo.pricingPhases.pricingPhaseList[0] != null) {
                         val defaultPricingPhase = firstProductInfo.pricingPhases.pricingPhaseList[0]
-                        item.put("price", (defaultPricingPhase.priceAmountMicros / 1000000f).toString())
+                        item.put(
+                            "price",
+                            (defaultPricingPhase.priceAmountMicros / 1000000f).toString()
+                        )
                         item.put("currency", defaultPricingPhase.priceCurrencyCode)
                         item.put("localizedPrice", defaultPricingPhase.formattedPrice)
                         item.put("subscriptionPeriodAndroid", defaultPricingPhase.billingPeriod)
                     }
 
                     val subs = JSONArray()
-                    if (productDetails.subscriptionOfferDetails != null ) {
+                    if (productDetails.subscriptionOfferDetails != null) {
                         for (offer in productDetails.subscriptionOfferDetails!!) {
                             val offerItem = JSONObject()
                             offerItem.put("offerId", offer.offerId)
@@ -451,7 +489,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                             val pricingPhases = JSONArray()
                             for (pricing in offer.pricingPhases.pricingPhaseList) {
                                 val pricingPhase = JSONObject()
-                                pricingPhase.put("price", (pricing.priceAmountMicros / 1000000f).toString())
+                                pricingPhase.put(
+                                    "price",
+                                    (pricing.priceAmountMicros / 1000000f).toString()
+                                )
                                 pricingPhase.put("formattedPrice", pricing.formattedPrice)
                                 pricingPhase.put("billingPeriod", pricing.billingPeriod)
                                 pricingPhase.put("currencyCode", pricing.priceCurrencyCode)
@@ -482,7 +523,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         call: MethodCall,
         safeChannel: MethodResultWrapper
     ) {
-        val type = if(call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
+        val type =
+            if (call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
         val obfuscatedAccountId = call.argument<String>("obfuscatedAccountId")
         val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
         val sku = call.argument<String>("sku")
@@ -541,11 +583,13 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     return
                 }
             }
+
             ProrationMode.IMMEDIATE_WITHOUT_PRORATION,
             ProrationMode.DEFERRED,
             ProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
             ProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE ->
                 params.setReplaceProrationMode(prorationMode)
+
             else -> params.setReplaceProrationMode(ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY)
         }
 
@@ -586,10 +630,20 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("developerPayloadAndroid", purchase.developerPayload)
                     val accountIdentifiers = purchase.accountIdentifiers
                     if (accountIdentifiers != null) {
-                        item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
-                        item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
+                        item.put(
+                            "obfuscatedAccountIdAndroid",
+                            accountIdentifiers.obfuscatedAccountId
+                        )
+                        item.put(
+                            "obfuscatedProfileIdAndroid",
+                            accountIdentifiers.obfuscatedProfileId
+                        )
                     }
-                    safeResult!!.invokeMethod("purchase-updated", item.toString())
+                    billingClient!!.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder()
+                        .setPurchaseToken(purchase.purchaseToken).build()
+                    ) {
+                        safeResult!!.invokeMethod("purchase-updated", item.toString())
+                    }
                     return@PurchasesUpdatedListener
                 }
             } else {

@@ -45,6 +45,5 @@ class BillingError {
             }
         }
     }
+    data class ErrorData(val code: String, val message: String)
 }
-
-data class ErrorData(val code: String, val message: String)
