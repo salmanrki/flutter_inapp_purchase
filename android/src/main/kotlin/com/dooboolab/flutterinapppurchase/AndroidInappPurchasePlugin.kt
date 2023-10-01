@@ -156,7 +156,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 "IAP not prepared. Check if Google Play service is available."
             )
             return
-        }
+        } 
 
         when (call.method) {
             "showInAppMessages" -> showInAppMessages(safeChannel)
