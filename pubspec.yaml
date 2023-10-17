@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.11.3
+  http: ^0.12.1
   meta: ^1.7.0
   platform: ^3.0.0
 
