@@ -569,30 +569,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         if (obfuscatedProfileId != null) {
             builder.setObfuscatedProfileId(obfuscatedProfileId)
         }
-
-        when (prorationMode) {
-            -1 -> {} //ignore
-            ProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE -> {
-                params.setReplaceProrationMode(ProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE)
-                if (type != BillingClient.ProductType.SUBS) {
-                    safeChannel.error(
-                        TAG,
-                        "buyItemByType",
-                        "IMMEDIATE_AND_CHARGE_PRORATED_PRICE for proration mode only works in subscription purchase."
-                    )
-                    return
-                }
-            }
-
-            ProrationMode.IMMEDIATE_WITHOUT_PRORATION,
-            ProrationMode.DEFERRED,
-            ProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
-            ProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE ->
-                params.setReplaceProrationMode(prorationMode)
-
-            else -> params.setReplaceProrationMode(ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY)
-        }
-
         if (purchaseToken != null) {
             builder.setSubscriptionUpdateParams(params.build())
         }
