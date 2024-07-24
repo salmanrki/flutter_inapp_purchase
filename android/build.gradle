@@ -25,7 +25,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 34
+    compileSdkVersion 31
+
     defaultConfig {
         minSdkVersion 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -46,5 +47,6 @@ dependencies {
     implementation 'com.android.billingclient:billing:7.0.0'
     implementation files('jars/in-app-purchasing-2.0.76.jar')
     implementation 'androidx.annotation:annotation:1.8.0'
+
 }
 
