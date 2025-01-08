@@ -2,7 +2,6 @@ group 'com.dooboolab.flutterinapppurchase'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    namespace = 'com.dooboolab.flutterinapppurchase'
     ext.kotlin_version = '1.6.21'
     repositories {
         google()
@@ -26,6 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace = 'com.dooboolab.flutterinapppurchase'
     compileSdkVersion 31
 
     defaultConfig {
